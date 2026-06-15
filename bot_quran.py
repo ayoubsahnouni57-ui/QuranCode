@@ -4,7 +4,7 @@ import pytz
 import os
 from telegram import Bot
 
-# Configuration - token lu depuis les variables d'environnement Railway
+# Configuration
 TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = "-5393193827"
 
@@ -37,25 +37,6 @@ def format_message(hd, md, hf, mf, matiere, prof):
         f"_تبدأ الحصة خلال 10 دقائق_ 🕐"
     )
 
-async def send_reminder(bot, hd, md, hf, mf, matiere, prof):
-    msg = format_message(hd, md, hf, mf, matiere, prof)
-    await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
-    print(f"✅ Message envoyé: {matiere} à {hd:02d}:{md:02d}")
-
-async def send_test_every_2min(bot):
-    counter = 1
-    while True:
-        now = datetime.datetime.now(MAROC_TZ)
-        msg = (
-            f"🧪 *TEST #{counter}*\n"
-            f"⏰ {now.strftime('%H:%M:%S')} (heure Maroc)\n"
-            f"✅ البوت يعمل بشكل صحيح!"
-        )
-        await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
-        print(f"🧪 Test #{counter} envoyé à {now.strftime('%H:%M:%S')}")
-        counter += 1
-        await asyncio.sleep(120)  # toutes les 2 minutes
-
 async def check_reminders(bot):
     while True:
         now = datetime.datetime.now(MAROC_TZ)
@@ -68,7 +49,9 @@ async def check_reminders(bot):
                 rappel_h -= 1
 
             if now.hour == rappel_h and now.minute == rappel_m and now.second < 30:
-                await send_reminder(bot, hd, md, hf, mf, matiere, prof)
+                msg = format_message(hd, md, hf, mf, matiere, prof)
+                await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
+                print(f"✅ Message envoyé: {matiere}")
                 await asyncio.sleep(60)
 
         await asyncio.sleep(20)
@@ -76,10 +59,7 @@ async def check_reminders(bot):
 async def main():
     bot = Bot(token=TOKEN)
     print("🤖 Bot démarré - En attente des rappels...")
-    await asyncio.gather(
-        send_test_every_2min(bot),
-        check_reminders(bot),
-    )
+    await check_reminders(bot)
 
 if __name__ == "__main__":
     asyncio.run(main())
