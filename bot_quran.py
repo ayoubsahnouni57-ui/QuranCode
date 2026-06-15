@@ -1,10 +1,11 @@
 import asyncio
 import datetime
 import pytz
+import os
 from telegram import Bot
 
-# Configuration
-TOKEN = "8957356236:AAEs_mAGNMWvDmImJBSbBWT1_FGb0tNozCI"
+# Configuration - token lu depuis les variables d'environnement Railway
+TOKEN = os.environ.get("BOT_TOKEN")
 CHAT_ID = "-5393193827"
 
 # Timezone Maroc
@@ -42,7 +43,6 @@ async def send_reminder(bot, hd, md, hf, mf, matiere, prof):
     print(f"✅ Message envoyé: {matiere} à {hd:02d}:{md:02d}")
 
 async def send_test_every_2min(bot):
-    """Envoie un message de test toutes les 2 minutes"""
     counter = 1
     while True:
         now = datetime.datetime.now(MAROC_TZ)
@@ -57,7 +57,6 @@ async def send_test_every_2min(bot):
         await asyncio.sleep(120)  # toutes les 2 minutes
 
 async def check_reminders(bot):
-    """Vérifie et envoie les rappels de cours"""
     while True:
         now = datetime.datetime.now(MAROC_TZ)
         print(f"⏰ Heure Maroc: {now.strftime('%H:%M:%S')}")
@@ -77,11 +76,9 @@ async def check_reminders(bot):
 async def main():
     bot = Bot(token=TOKEN)
     print("🤖 Bot démarré - En attente des rappels...")
-
-    # Lance les 2 tâches en parallèle
     await asyncio.gather(
-        send_test_every_2min(bot),   # Test toutes les 2 min
-        check_reminders(bot),         # Rappels des cours
+        send_test_every_2min(bot),
+        check_reminders(bot),
     )
 
 if __name__ == "__main__":
