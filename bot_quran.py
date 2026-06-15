@@ -1,10 +1,14 @@
 import asyncio
 import datetime
+import pytz
 from telegram import Bot
 
 # Configuration
 TOKEN = "8957356236:AAEs_mAGNMWvDmImJBSbBWT1_FGb0tNozCI"
 CHAT_ID = "-5393193827"
+
+# Timezone Maroc
+MAROC_TZ = pytz.timezone("Africa/Casablanca")
 
 # Programme des cours
 COURS = [
@@ -19,10 +23,6 @@ COURS = [
     (18, 30, 19, 30, "حصة التجويد",                          "ذ. البردعي"),
     (19, 30, 20, 30, "موعظة",                                "ذ. نعيمة"),
     (21, 30, 22, 30, "تثبيت سورة البقرة",                   "ذ. بنفارس"),
-    # TESTS toutes les 2 minutes
-    (23, 47, 23, 49, "🧪 TEST 1 - تجربة البوت",             "ذ. اختبار"),
-    (23, 49, 23, 51, "🧪 TEST 2 - تجربة البوت",             "ذ. اختبار"),
-    (23, 51, 23, 53, "🧪 TEST 3 - تجربة البوت",             "ذ. اختبار"),
 ]
 
 def format_message(hd, md, hf, mf, matiere, prof):
@@ -41,13 +41,26 @@ async def send_reminder(bot, hd, md, hf, mf, matiere, prof):
     await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
     print(f"✅ Message envoyé: {matiere} à {hd:02d}:{md:02d}")
 
-async def main():
-    bot = Bot(token=TOKEN)
-    print("🤖 Bot démarré - En attente des rappels...")
-
+async def send_test_every_2min(bot):
+    """Envoie un message de test toutes les 2 minutes"""
+    counter = 1
     while True:
-        now = datetime.datetime.now()
-        print(f"⏰ Heure actuelle: {now.hour:02d}:{now.minute:02d}:{now.second:02d}")
+        now = datetime.datetime.now(MAROC_TZ)
+        msg = (
+            f"🧪 *TEST #{counter}*\n"
+            f"⏰ {now.strftime('%H:%M:%S')} (heure Maroc)\n"
+            f"✅ البوت يعمل بشكل صحيح!"
+        )
+        await bot.send_message(chat_id=CHAT_ID, text=msg, parse_mode="Markdown")
+        print(f"🧪 Test #{counter} envoyé à {now.strftime('%H:%M:%S')}")
+        counter += 1
+        await asyncio.sleep(120)  # toutes les 2 minutes
+
+async def check_reminders(bot):
+    """Vérifie et envoie les rappels de cours"""
+    while True:
+        now = datetime.datetime.now(MAROC_TZ)
+        print(f"⏰ Heure Maroc: {now.strftime('%H:%M:%S')}")
         for (hd, md, hf, mf, matiere, prof) in COURS:
             rappel_h = hd
             rappel_m = md - 10
@@ -60,6 +73,16 @@ async def main():
                 await asyncio.sleep(60)
 
         await asyncio.sleep(20)
+
+async def main():
+    bot = Bot(token=TOKEN)
+    print("🤖 Bot démarré - En attente des rappels...")
+
+    # Lance les 2 tâches en parallèle
+    await asyncio.gather(
+        send_test_every_2min(bot),   # Test toutes les 2 min
+        check_reminders(bot),         # Rappels des cours
+    )
 
 if __name__ == "__main__":
     asyncio.run(main())
