@@ -19,6 +19,8 @@ COURS = [
     (18, 30, 19, 30, "حصة التجويد",                          "ذ. البردعي"),
     (19, 30, 20, 30, "موعظة",                                "ذ. نعيمة"),
     (21, 30, 22, 30, "تثبيت سورة البقرة",                   "ذ. بنفارس"),
+    # TEST - cours dans 2 minutes
+    (23, 36, 23, 56, "🧪 TEST - تجربة البوت",               "ذ. اختبار"),
 ]
 
 def format_message(hd, md, hf, mf, matiere, prof):
@@ -44,7 +46,6 @@ async def main():
     while True:
         now = datetime.datetime.now()
         for (hd, md, hf, mf, matiere, prof) in COURS:
-            # Heure du rappel = 10 minutes avant le début
             rappel_h = hd
             rappel_m = md - 10
             if rappel_m < 0:
@@ -53,7 +54,7 @@ async def main():
 
             if now.hour == rappel_h and now.minute == rappel_m and now.second < 30:
                 await send_reminder(bot, hd, md, hf, mf, matiere, prof)
-                await asyncio.sleep(60)  # Éviter double envoi
+                await asyncio.sleep(60)
 
         await asyncio.sleep(20)
 
